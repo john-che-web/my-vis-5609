@@ -5,6 +5,7 @@
     function onClick() {
       // tip: Since DOM (i.e., the webpage content) will automatically update based on values, [<p id="info">Remaining Number of Clicks: {cnt}</p>]
       // we only need to change the cnt number here. 
+      //random comment to trigger change
       if (cnt > 0) {
         cnt--;
       }
