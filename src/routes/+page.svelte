@@ -15,7 +15,7 @@
   <h1>John's VIS Site</h1>
   <img
     width="200px"
-    src="/images/img_1.jpg"
+    src="https://john-che-web.github.io/my-vis-5609/images/img_1.jpg"
   />
   <div>
     You can click up to
