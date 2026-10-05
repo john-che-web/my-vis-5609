@@ -145,6 +145,181 @@
   $effect(() => {
     updateAxis();
   });
+
+  // ---------------------------------------------------------------
+  // Q1: Stacked bar chart of the top three genres per year.
+  // ---------------------------------------------------------------
+
+  // Store the genre currently being hovered over in the stacked chart.
+  let selectedStackGenre: string | undefined =
+    $state(undefined);
+
+  type StackSegment = {
+    genre: string;
+    count: number;
+    y0: number;
+    y1: number;
+  };
+
+  type YearStack = {
+    year: number;
+    segments: StackSegment[];
+    total: number;
+  };
+
+  // For every year, find the top three genres by movie count
+  // (ties broken alphabetically) and stack them from the bottom up.
+  const yearStacks: YearStack[] = $derived.by(() => {
+    const byYear = new Map<number, Record<string, number>>();
+
+    movies.forEach((movie) => {
+      const y = movie.year.getFullYear();
+      const counts = byYear.get(y) ?? {};
+      movie.genres.forEach((genre: string) => {
+        counts[genre] = (counts[genre] || 0) + 1;
+      });
+      byYear.set(y, counts);
+    });
+
+    return Array.from(byYear.entries())
+      .sort((a, b) => a[0] - b[0])
+      .map(([year, counts]) => {
+        const top = Object.entries(counts)
+          .sort(
+            (a, b) =>
+              b[1] - a[1] || a[0].localeCompare(b[0])
+          )
+          .slice(0, 3);
+
+        let acc = 0;
+        const segments = top.map(([genre, count]) => {
+          const segment = {
+            genre,
+            count,
+            y0: acc,
+            y1: acc + count,
+          };
+          acc += count;
+          return segment;
+        });
+
+        return { year, segments, total: acc };
+      });
+  });
+
+  // Only draw bars for years up to the progress cutoff.
+  const visibleStacks = $derived(
+    yearStacks.filter(
+      (d) => new Date(d.year, 0, 1) <= upYear
+    )
+  );
+
+  // Every genre that appears in any year's top three.
+  const stackGenres = $derived(
+    Array.from(
+      new Set(
+        yearStacks.flatMap((d) =>
+          d.segments.map((s) => s.genre)
+        )
+      )
+    ).sort((a, b) => a.localeCompare(b))
+  );
+
+  // One color per genre, fixed across all years.
+  const colorScale = $derived(
+    d3
+      .scaleOrdinal<string, string>()
+      .domain(stackGenres)
+      .range(d3.schemeTableau10)
+  );
+
+  // Stacked chart margins (the plot keeps the same size as the first chart).
+  const stackMargin = {
+    top: 35,
+    bottom: 100,
+    left: 40,
+    right: 10,
+  };
+
+  const stackArea = $derived({
+    top: stackMargin.top,
+    right: width - stackMargin.right,
+    bottom: height - stackMargin.bottom,
+    left: stackMargin.left,
+  });
+
+  // X-axis: one band for each year (all years are kept).
+  const stackXScale = $derived(
+    d3
+      .scaleBand<string>()
+      .domain(yearStacks.map((d) => String(d.year)))
+      .range([stackArea.left, stackArea.right])
+      .padding(0.12)
+  );
+
+  // Y-axis: combined movie count, based on all years so it stays fixed.
+  const stackYScale = $derived(
+    d3
+      .scaleLinear()
+      .domain([
+        0,
+        Math.max(1, d3.max(yearStacks, (d) => d.total) ?? 0),
+      ])
+      .nice()
+      .range([stackArea.bottom, stackArea.top])
+  );
+
+  // Legend layout: placed below the chart and wrapped into rows.
+  const legendItemWidth = 140;
+  const legendRowHeight = 22;
+  const legendCols = $derived(
+    Math.max(
+      1,
+      Math.floor(
+        (width - stackMargin.left - stackMargin.right) /
+          legendItemWidth
+      )
+    )
+  );
+  const legendTop = $derived(stackArea.bottom + 70);
+  const stackSvgHeight = $derived(
+    legendTop +
+      Math.ceil(stackGenres.length / legendCols) *
+        legendRowHeight +
+      10
+  );
+
+  // DOM references for the stacked chart axes.
+  let stackXAxis: SVGGElement;
+  let stackYAxis: SVGGElement;
+
+  function updateStackAxis() {
+    // Keep every bar, but only label every 5th year.
+    d3.select(stackXAxis)
+      .call(
+        d3
+          .axisBottom(stackXScale)
+          .tickValues(
+            stackXScale
+              .domain()
+              .filter((year) => Number(year) % 5 === 0)
+          )
+      )
+      .selectAll("text")
+      .style("font-size", "12px");
+
+    d3.select(stackYAxis).call(
+      d3
+        .axisLeft(stackYScale)
+        .ticks(10)
+        .tickFormat(d3.format("d"))
+    );
+  }
+
+  // Redraw the stacked chart axes when their scales change.
+  $effect(() => {
+    updateStackAxis();
+  });
 </script>
 
 <h3>
@@ -205,11 +380,92 @@
   </svg>
 {/if}
 
+<h3 class="q1-title">
+  Q1: How do the top three movie genres (by number of movies)
+  change over time?
+</h3>
+
+{#if movies.length > 0}
+  <svg {width} height={stackSvgHeight}>
+    <!-- One stacked bar per year. -->
+    <g class="stacked-bars">
+      {#each visibleStacks as d (d.year)}
+        <g class="year-stack">
+          {#each d.segments as segment (segment.genre)}
+            <rect
+              class="bar"
+              x={stackXScale(String(d.year))!}
+              y={stackYScale(segment.y1)}
+              width={stackXScale.bandwidth()}
+              height={stackYScale(segment.y0) -
+                stackYScale(segment.y1)}
+              fill={colorScale(segment.genre)}
+              opacity={selectedStackGenre === segment.genre
+                ? 0.6
+                : 1}
+              onmouseenter={() => {
+                selectedStackGenre = segment.genre;
+              }}
+              onmouseleave={() => {
+                selectedStackGenre = undefined;
+              }}
+            />
+          {/each}
+        </g>
+      {/each}
+    </g>
+
+    <!-- X-axis. -->
+    <g
+      transform="translate(0, {stackArea.bottom})"
+      bind:this={stackXAxis}
+    />
+
+    <!-- Y-axis. -->
+    <g
+      transform="translate({stackArea.left}, 0)"
+      bind:this={stackYAxis}
+    />
+
+    <!-- Legend below the chart. -->
+    <g class="legend">
+      {#each stackGenres as genre, i (genre)}
+        <g
+          transform="translate({stackMargin.left +
+            (i % legendCols) * legendItemWidth}, {legendTop +
+            Math.floor(i / legendCols) * legendRowHeight})"
+        >
+          <rect
+            width="14"
+            height="14"
+            fill={colorScale(genre)}
+            opacity={selectedStackGenre === genre ? 0.6 : 1}
+          />
+          <text
+            x="20"
+            y="12"
+            font-size="12"
+            font-weight={selectedStackGenre === genre
+              ? "bold"
+              : "normal"}
+          >
+            {genre}
+          </text>
+        </g>
+      {/each}
+    </g>
+  </svg>
+{/if}
+
 <style>
   h3 {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 1.5rem;
     margin-bottom: 25px;
+  }
+
+  .q1-title {
+    margin-top: 40px;
   }
 
   svg {
