@@ -3,6 +3,7 @@
   import { onMount } from "svelte";
   import type { TMovie } from "../../types";
   import Bar from "$lib/Bar.svelte";
+  import { base } from "$app/paths";
 
   // Store the movies loaded from the CSV file.
   let movies: TMovie[] = $state([]);
@@ -10,7 +11,7 @@
   // Load and convert the CSV data.
   async function loadCsv() {
     try {
-      const csvUrl = "/summer_movies.csv";
+      const csvUrl = `${base}/summer_movies.csv`;
 
       const data = await d3.csv(csvUrl, (row) => {
         return {
