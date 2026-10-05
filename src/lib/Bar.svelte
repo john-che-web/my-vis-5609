@@ -230,7 +230,7 @@
     d3
       .scaleOrdinal<string, string>()
       .domain(stackGenres)
-      .range(d3.schemeTableau10)
+      .range([...d3.schemeTableau10, ...d3.schemeSet3.slice(0, 7)])
   );
 
   // Stacked chart margins (the plot keeps the same size as the first chart).
@@ -320,6 +320,164 @@
   $effect(() => {
     updateStackAxis();
   });
+
+  // ---------------------------------------------------------------
+  // Q2: Radar chart of genres co-occurring with the base genre.
+  // ---------------------------------------------------------------
+
+  // The base genre, chosen from the dropdown (starts as Comedy).
+  let radarBase: string = $state("Comedy");
+
+  // Genres that share a movie with at least one other genre (over all years),
+  // sorted alphabetically, for the dropdown.
+  const allGenres = $derived(
+    Array.from(
+      new Set(
+        movies
+          .filter((movie) => movie.genres.length > 1)
+          .flatMap((movie) => movie.genres)
+      )
+    ).sort((a, b) => a.localeCompare(b))
+  );
+
+  // Genres that never co-occur with any other genre, left out of the dropdown.
+  const excludedGenres = $derived(
+    Array.from(
+      new Set(movies.flatMap((movie) => movie.genres))
+    )
+      .filter((genre) => !allGenres.includes(genre))
+      .sort((a, b) => a.localeCompare(b))
+  );
+
+  // Store the radar point currently being hovered over.
+  let hoveredRadarGenre: string | undefined =
+    $state(undefined);
+
+  // Count the movies containing both the base genre and each other genre.
+  function getCooccurrence(
+    movies: TMovie[],
+    upYear: Date,
+    base: string
+  ): Record<string, number> {
+    const result: Record<string, number> = {};
+
+    movies
+      .filter(
+        (movie) =>
+          movie.year <= upYear && movie.genres.includes(base)
+      )
+      .forEach((movie) => {
+        movie.genres.forEach((genre: string) => {
+          if (genre !== base) {
+            result[genre] = (result[genre] || 0) + 1;
+          }
+        });
+      });
+
+    return result;
+  }
+
+  // Co-occurrence counts up to the progress cutoff.
+  const coNums = $derived(
+    getCooccurrence(movies, upYear, radarBase)
+  );
+
+  // Largest count over all years, so the scale stays fixed as progress changes.
+  const coMax = $derived(
+    d3.max(
+      Object.values(
+        getCooccurrence(
+          movies,
+          new Date(8.64e15),
+          radarBase
+        )
+      )
+    ) ?? 1
+  );
+
+  // One axis per genre that co-occurs at least once, sorted alphabetically.
+  const radarGenres = $derived(
+    Object.keys(coNums).sort((a, b) => a.localeCompare(b))
+  );
+
+  // Radar geometry.
+  const radarCx = $derived(width / 2);
+  const radarCy = $derived(height / 2);
+  const radarRadius = $derived(
+    Math.min(width, height) / 2 - 70
+  );
+
+  // Shared radial scale for all axes.
+  const radialScale = $derived(
+    d3
+      .scaleLinear()
+      .domain([0, coMax])
+      .nice()
+      .range([0, radarRadius])
+  );
+
+  // Concentric grid rings (skip the zero ring).
+  const radarTicks = $derived(
+    radialScale.ticks(5).filter((t) => t > 0)
+  );
+
+  // Angle of each axis, starting at the top and going clockwise.
+  function radarAngle(i: number, n: number): number {
+    return (i * 2 * Math.PI) / n - Math.PI / 2;
+  }
+
+  // Position of a value on an axis.
+  function radarPoint(
+    i: number,
+    n: number,
+    value: number
+  ): [number, number] {
+    const a = radarAngle(i, n);
+    const r = radialScale(value);
+    return [
+      radarCx + r * Math.cos(a),
+      radarCy + r * Math.sin(a),
+    ];
+  }
+
+  // Everything needed to draw each axis, label and point.
+  const radarData = $derived(
+    radarGenres.map((genre, i) => {
+      const n = radarGenres.length;
+      const a = radarAngle(i, n);
+      const count = coNums[genre];
+      const [x, y] = radarPoint(i, n, count);
+      return {
+        genre,
+        count,
+        x,
+        y,
+        axisX: radarCx + radarRadius * Math.cos(a),
+        axisY: radarCy + radarRadius * Math.sin(a),
+        labelX: radarCx + (radarRadius + 15) * Math.cos(a),
+        labelY: radarCy + (radarRadius + 15) * Math.sin(a),
+        anchor:
+          Math.cos(a) > 0.1
+            ? "start"
+            : Math.cos(a) < -0.1
+              ? "end"
+              : "middle",
+      };
+    })
+  );
+
+  // Polygon outline connecting the plotted values.
+  const radarPolygon = $derived(
+    radarData.map((d) => `${d.x},${d.y}`).join(" ")
+  );
+
+  // Grid ring polygons, one for each tick.
+  function ringPoints(tick: number): string {
+    const n = radarGenres.length;
+    return radarGenres
+      .map((_, i) => radarPoint(i, n, tick).join(","))
+      .join(" ");
+  }
 </script>
 
 <h3>
@@ -457,6 +615,110 @@
   </svg>
 {/if}
 
+<h3 class="q2-title">
+  Q2: Are there any correlations between different genres?
+</h3>
+<p class="caption">
+  Genres that appear with {radarBase} in at least one movie.
+</p>
+
+<label class="genre-select">
+  Base genre:
+  <select bind:value={radarBase}>
+    {#each allGenres as genre (genre)}
+      <option value={genre}>{genre}</option>
+    {/each}
+  </select>
+</label>
+
+{#if movies.length > 0}
+  <svg {width} {height}>
+    <!-- Concentric grid rings. -->
+    <g class="radar-grid">
+      {#each radarTicks as tick (tick)}
+        <polygon
+          points={ringPoints(tick)}
+          fill="none"
+          stroke="#ccc"
+        />
+        <text
+          x={radarCx + 4}
+          y={radarCy - radialScale(tick) - 2}
+          font-size="11"
+          fill="#666"
+        >
+          {tick}
+        </text>
+      {/each}
+    </g>
+
+    <!-- Axes and genre labels. -->
+    <g class="radar-axes">
+      {#each radarData as d (d.genre)}
+        <line
+          x1={radarCx}
+          y1={radarCy}
+          x2={d.axisX}
+          y2={d.axisY}
+          stroke="#ccc"
+        />
+        <text
+          x={d.labelX}
+          y={d.labelY}
+          font-size="12"
+          text-anchor={d.anchor}
+          dominant-baseline="middle"
+        >
+          {d.genre}
+        </text>
+      {/each}
+    </g>
+
+    <!-- Connected polygon. -->
+    <polygon
+      points={radarPolygon}
+      fill="#4E79A7"
+      fill-opacity="0.35"
+      stroke="#4E79A7"
+      stroke-width="2"
+    />
+
+    <!-- Points on the axes, with the count shown on hover. -->
+    <g class="radar-points">
+      {#each radarData as d (d.genre)}
+        <circle
+          cx={d.x}
+          cy={d.y}
+          r={hoveredRadarGenre === d.genre ? 7 : 4}
+          fill="#4E79A7"
+          onmouseenter={() => {
+            hoveredRadarGenre = d.genre;
+          }}
+          onmouseleave={() => {
+            hoveredRadarGenre = undefined;
+          }}
+        />
+        {#if hoveredRadarGenre === d.genre}
+          <text
+            x={d.x + 10}
+            y={d.y - 10}
+            font-size="12"
+            font-weight="bold"
+          >
+            {d.count}
+          </text>
+        {/if}
+      {/each}
+    </g>
+  </svg>
+
+  {#if excludedGenres.length > 0}
+    <p class="note">
+      Genres with no co-occurring genres: {excludedGenres.join(", ")}
+    </p>
+  {/if}
+{/if}
+
 <style>
   h3 {
     font-family: Arial, Helvetica, sans-serif;
@@ -466,6 +728,31 @@
 
   .q1-title {
     margin-top: 40px;
+  }
+
+  .q2-title {
+    margin-top: 40px;
+  }
+
+  .genre-select {
+    display: block;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+  }
+
+  .note {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1.25rem;
+    color: #555;
+    margin: 15px 0 0;
+  }
+
+  .caption {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 0.9rem;
+    color: #555;
+    margin: -15px 0 15px;
   }
 
   svg {
