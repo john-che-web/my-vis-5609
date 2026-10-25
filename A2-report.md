@@ -29,8 +29,7 @@ The dropdowns should not treat text fields and identifiers as quantitative visua
 
 These fields either contain long text, categorical arrays, or identifiers. Mapping them to a numeric position or size produces encodings that do not communicate a meaningful quantitative relationship. `title_type` is also better treated as a categorical filter or grouping variable than as a numeric channel.
 
-Appropriate quantitative channels include `year`, `runtime_minutes`, `average_rating`, and
-num_votes`, provided missing values are handled explicitly.
+Appropriate quantitative channels include `year`, `runtime_minutes`, `average_rating`, and `num_votes`, provided missing values are handled explicitly.
 
 ## Guided Exploratory Data Analysis
 
@@ -48,10 +47,9 @@ The dashboard was used to compare these factors with `average_rating`.
 
 ### Factor 1: Runtime
 
-For this view, I set the x-axis to `runtime_minutes`, the y-axis to `average_rating`, and point size to
-num_votes`. Point size provides additional context about popularity while the x- and y-positions show the runtime-rating relationship.
+For this view, I set the x-axis to `runtime_minutes`, the y-axis to `average_rating`, and point size to `num_votes`. Point size provides additional context about popularity while the x- and y-positions show the runtime-rating relationship.
 
-![Runtime versus rating](static/images/Runtime_vs_rating.png)
+![Runtime versus rating](static/images/runtime_vs_rating.png)
 
 
 The relationship between runtime and rating is very weak. The Pearson correlation is approximately `-0.008`, which is effectively zero for this exploratory analysis. The points do not form a strong upward or downward pattern. This suggests that longer movies are not consistently rated higher or lower than shorter movies in this dataset.
@@ -59,10 +57,9 @@ The relationship between runtime and rating is very weak. The Pearson correlatio
 ### Factor 2: Number of Votes
 
 For this view, I set the x-axis to
-num_votes`, the y-axis to `average_rating`, and point size to
-num_votes` or another numeric attribute. The x-position shows popularity directly, while point size helps emphasize high-vote movies.
+num_votes`, the y-axis to `average_rating`, and point size to `num_votes` or another numeric attribute. The x-position shows popularity directly, while point size helps emphasize high-vote movies.
 
-![alt text](static/images/num_votes_vs_avg_rating.png)
+![Number of votes versus rating](static/images/num_votes_vs_avg_rating.png)
 
 The relationship between vote count and rating is also very weak. The Pearson correlation is approximately `+0.048`. There is a slight positive tendency, but it is not strong enough to conclude that popularity meaningfully predicts rating. The distribution is also highly uneven because a small number of movies have many more votes than most movies.
 
