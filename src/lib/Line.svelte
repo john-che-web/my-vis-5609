@@ -29,9 +29,6 @@
     d3.scaleLinear().domain(yearExtent[0] === undefined || yearExtent[1] === undefined ? [0, 1] : yearExtent as [number, number]).range([0, chartWidth])
   );
   const yScale = $derived(d3.scaleLinear().domain([0, maxCount]).nice().range([chartHeight, 0]));
-  const linePath = $derived(
-    d3.line<{ year: number; count: number }>().x(d => xScale(d.year)).y(d => yScale(d.count))(yearlyCounts) ?? ''
-  );
   const xTicks = $derived(xScale.ticks(8));
   const yTicks = $derived(yScale.ticks(4));
 
@@ -64,9 +61,8 @@
     {#each xTicks as tick}
       <text x={xScale(tick)} y={chartHeight + 18} text-anchor="middle" font-size="10">{tick}</text>
     {/each}
-    <path d={linePath} fill="none" stroke="#222" stroke-width="1.5" />
     {#each yearlyCounts as point (point.year)}
-      <circle cx={xScale(point.year)} cy={yScale(point.count)} r="1.8" fill="#222">
+      <circle cx={xScale(point.year)} cy={yScale(point.count)} r="3" fill="#222">
         <title>{point.year}: {point.count} movies</title>
       </circle>
     {/each}
