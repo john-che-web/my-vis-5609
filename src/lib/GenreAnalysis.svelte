@@ -40,9 +40,11 @@
   const ratingTicks = $derived(pointY.ticks(5));
 </script>
 
-<div class="analysis" style={`--chart-width: ${width}px`}>
-  <div class="view-title">Average rating by genre</div>
-  <div class="view-title right-title">Selected genre over time</div>
+<div class="analysis" style={`--chart-width: ${width}px; --title-width: ${2 * (viewWidth - margin.left - margin.right) + gap}px; --title-left: ${margin.left}px; --title-gap: ${gap}px`}>
+  <div class="title-row">
+    <div class="view-title">Average rating by genre</div>
+    <div class="view-title">Selected genre over time</div>
+  </div>
   <svg {width} {height} role="img" aria-label="Linked genre rating analysis">
     <g transform={`translate(${margin.left},${margin.top})`}>
       {#each genreStats as stat (stat.genre)}
