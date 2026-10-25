@@ -8,13 +8,13 @@
 
 ## Dataset
 
-The visualization uses the provided `summer_movies.csv` dataset containing 899 summer movies. The dataset includes release year, runtime, genres, audience rating, vote count, title information, and identifiers. Some records contain missing numeric values. These records remain part of the dataset, while visual channels that require numeric values skip the missing values rather than treating them as zero.
+My visualization uses the provided `summer_movies.csv` dataset containing 899 summer movies. The dataset includes release year, runtime, genres, audience rating, vote count, title information, and identifiers. Some records contain missing numeric values. These records remain part of the dataset, while visual channels that require numeric values skip the missing values rather than treating them as zero.
 
 ## Reflection
 
 ### Why is scatterplot opacity set to 0.5?
 
-The scatterplot uses opacity `0.5` so overlapping points remain visible. When many movies share similar values, partially transparent circles blend together and communicate the density of observations. Areas with many overlapping points appear darker, while isolated observations remain lighter and easier to distinguish.
+I think the scatterplot uses opacity `0.5` so overlapping points remain visible. When many movies share similar values, partially transparent circles can blend together and communicate the density of observations. Areas with many overlapping points appear darker, while isolated observations remain lighter and easier to distinguish.
 
 If every point had opacity `1`, points drawn later would completely cover points drawn earlier. Dense regions would hide observations, making it difficult to tell whether a cluster contains a few movies or many movies. Full opacity would therefore reduce the usefulness of the scatterplot for identifying concentration, overlap, and outliers.
 
@@ -30,7 +30,8 @@ The dropdowns should not treat text fields and identifiers as quantitative visua
 
 These fields either contain long text, categorical arrays, or identifiers. Mapping them to a numeric position or size produces encodings that do not communicate a meaningful quantitative relationship. `title_type` is also better treated as a categorical filter or grouping variable than as a numeric channel.
 
-Appropriate quantitative channels include `year`, `runtime_minutes`, `average_rating`, and `num_votes`, provided missing values are handled explicitly.
+Appropriate quantitative channels include `year`, `runtime_minutes`, `average_rating`, and 
+um_votes`, provided missing values are handled explicitly.
 
 ## Guided Exploratory Data Analysis
 
@@ -48,9 +49,11 @@ The dashboard was used to compare these factors with `average_rating`.
 
 ### Factor 1: Runtime
 
-For this view, I set the x-axis to `runtime_minutes`, the y-axis to `average_rating`, and point size to `num_votes`. Point size provides additional context about popularity while the x- and y-positions show the runtime-rating relationship.
+For this view, I set the x-axis to `runtime_minutes`, the y-axis to `average_rating`, and point size to 
+um_votes`. Point size provides additional context about popularity while the x- and y-positions show the runtime-rating relationship.
 
 **[SCREENSHOT 1 — Runtime versus rating]**
+![alt text](static\images\Runtime_vs_rating.png)
 
 > Insert a screenshot showing the scatterplot with `X-axis = Runtime`, `Y-axis = Average rating`, and `Point size = Number of votes`. The full chart, dropdowns, and movie count should be visible.
 
@@ -58,10 +61,12 @@ The relationship between runtime and rating is very weak. The Pearson correlatio
 
 ### Factor 2: Number of Votes
 
-For this view, I set the x-axis to `num_votes`, the y-axis to `average_rating`, and point size to `num_votes` or another numeric attribute. The x-position shows popularity directly, while point size helps emphasize high-vote movies.
+For this view, I set the x-axis to 
+um_votes`, the y-axis to `average_rating`, and point size to 
+um_votes` or another numeric attribute. The x-position shows popularity directly, while point size helps emphasize high-vote movies.
 
 **[SCREENSHOT 2 — Votes versus rating]**
-
+![alt text](static\images\num_votes_vs_avg_rating.png)
 > Insert a screenshot showing the scatterplot with `X-axis = Number of votes` and `Y-axis = Average rating`. Include enough of the chart to show the concentration of movies with lower vote counts and any high-vote outliers.
 
 The relationship between vote count and rating is also very weak. The Pearson correlation is approximately `+0.048`. There is a slight positive tendency, but it is not strong enough to conclude that popularity meaningfully predicts rating. The distribution is also highly uneven because a small number of movies have many more votes than most movies.
@@ -129,10 +134,10 @@ Before exporting the PDF, replace every screenshot placeholder with the correspo
 |---|---|
 | 1 | Runtime on x-axis, rating on y-axis, vote count as point size |
 | 2 | Vote count on x-axis, rating on y-axis, visible popularity distribution |
-| 3 | Genre average-rating comparison with labels and counts/summary |
-| 4 | Full independent genre overview with both linked views |
-| 5 | A selected high-rating genre and its year-rating distribution |
-| 6 | A contrasting selected genre and its updated year-rating distribution |
+| 3 | The left-side genre average-rating bar chart; not the main movie scatterplot |
+| 4 | Full independent genre overview: genre bars on the left and selected-genre year/rating scatterplot on the right |
+| 5 | High-rating genre selected; its bar highlighted and its year/rating scatterplot visible |
+| 6 | Contrasting genre selected; updated year/rating scatterplot visible |
 
 ## Final Verification Before Submission
 
@@ -143,4 +148,6 @@ Before exporting the PDF, replace every screenshot placeholder with the correspo
 - Confirm the PDF explains all three guided factors.
 - Confirm the PDF explains the independent question and linked visualization.
 - Confirm the report does not claim causation from correlation.
-- Confirm the final implementation has been checked with `npm run check` and `npm run build`.
+- Confirm the final implementation has been checked with 
+pm run check` and 
+pm run build`.
