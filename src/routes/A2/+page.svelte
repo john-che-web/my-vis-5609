@@ -2,6 +2,7 @@
   import * as d3 from 'd3';
   import { onMount } from 'svelte';
   import { base } from '$app/paths';
+  import GenreAnalysis from '$lib/GenreAnalysis.svelte';
   import { Line, Scatter } from '$lib';
   import type { TMovie } from '../../types';
   import type { ChannelAttribute } from '$lib/Scatter.svelte';
@@ -119,7 +120,7 @@
         {#if selectedMovie}
           <aside class="selection">
             <strong>{selectedMovie.primary_title}</strong>
-            <span>{selectedMovie.year ? selectedMovie.year.getFullYear() : 'Unknown year'} · Rating {selectedMovie.average_rating ?? 'Unknown'} · {selectedMovie.runtime_minutes ?? 'Unknown'} minutes · {selectedMovie.num_votes?.toLocaleString() ?? 'Unknown'} votes</span>
+            <span>{selectedMovie.year ? selectedMovie.year.getFullYear() : 'Unknown year'} Â· Rating {selectedMovie.average_rating ?? 'Unknown'} Â· {selectedMovie.runtime_minutes ?? 'Unknown'} minutes Â· {selectedMovie.num_votes?.toLocaleString() ?? 'Unknown'} votes</span>
             <details>
               <summary>Raw movie data</summary>
               <pre>{JSON.stringify(selectedMovie, null, 2)}</pre>
@@ -131,7 +132,12 @@
       </div>
     </section>
 
-    <section class="timeline">
+      <section class="independent-analysis">
+      <h2>Independent EDA: Which genres combine high ratings with sustained representation?</h2>
+      <p class="filter-status">Click a genre bar to compare its rating distribution over time.</p>
+      <GenreAnalysis {movies} />
+    </section>
+  <section class="timeline">
       <h2>Movie count over time</h2>
       <Line {movies} onBrushChange={updateBrush} />
       {#if brushedYears}
