@@ -4,7 +4,7 @@
 
   type GenreStat = { genre: string; count: number; average: number };
   type Props = { movies: TMovie[]; width?: number; height?: number };
-  let { movies, width = 920, height = 430 }: Props = $props();
+  let { movies, width = 780, height = 430 }: Props = $props();
   let selectedGenre = $state('Drama');
 
   const genreStats = $derived.by(() => {
@@ -27,8 +27,8 @@
   const selectedMovies = $derived(
     movies.filter(movie => movie.genres.includes(selectedGenre) && movie.year !== null && movie.average_rating !== null)
   );
-  const margin = { top: 30, right: 24, bottom: 54, left: 100 };
-  const gap = 70;
+  const margin = { top: 30, right: 16, bottom: 54, left: 90 };
+  const gap = 40;
   const viewWidth = (width - gap) / 2;
   const chartHeight = height - margin.top - margin.bottom;
   const barX = $derived(d3.scaleLinear().domain([0, 10]).range([0, viewWidth - margin.left - margin.right]));
