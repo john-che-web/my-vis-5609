@@ -96,8 +96,7 @@
 
 <style>
   .analysis { max-width: var(--chart-width); overflow-x: auto; font-family: Arial, Helvetica, sans-serif; }
-  .view-title { display: inline-block; width: calc(50% - 2rem); margin-left: 100px; font-weight: 700; }
-  .right-title { margin-left: 0; }
-  svg { display: block; overflow: visible; }
+  .title-row { display: grid; grid-template-columns: repeat(2, 1fr); column-gap: var(--title-gap); width: var(--title-width); margin-left: var(--title-left); }
+  .view-title { text-align: center; font-weight: 700; }  svg { display: block; overflow: visible; }
   .selection-note { margin: 0.25rem 0 0; color: #4b5563; font-size: 0.9rem; }
 </style>
