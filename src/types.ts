@@ -8,4 +8,5 @@ export type TMovie = {
     title_type: string;
     primary_title: string;
     original_title: string;
+    simple_title: string;
 }

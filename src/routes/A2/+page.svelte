@@ -4,13 +4,18 @@
   import { base } from '$app/paths';
   import { Line, Scatter } from '$lib';
   import type { TMovie } from '../../types';
-  import type { NumericAttribute } from '$lib/Scatter.svelte';
+  import type { ChannelAttribute } from '$lib/Scatter.svelte';
 
-  const numericAttributes: { value: NumericAttribute; label: string }[] = [
+  const channelAttributes: { value: ChannelAttribute; label: string }[] = [
     { value: 'year', label: 'Year' },
     { value: 'runtime_minutes', label: 'Runtime' },
     { value: 'average_rating', label: 'Average rating' },
-    { value: 'num_votes', label: 'Number of votes' }
+    { value: 'num_votes', label: 'Number of votes' },
+    { value: 'title_type', label: 'Title type' },
+    { value: 'primary_title', label: 'Primary title' },
+    { value: 'original_title', label: 'Original title' },
+    { value: 'simple_title', label: 'Simple title' },
+    { value: 'tconst', label: 'Movie ID' }
   ];
 
   let movies: TMovie[] = $state([]);
@@ -18,10 +23,9 @@
   let selectedMovieId: string | undefined = $state(undefined);
   let selectedMovie = $derived(movies.find(movie => movie.tconst === selectedMovieId));
   let brushedYears: [number, number] | undefined = $state(undefined);
-  let xAttribute: NumericAttribute = $state('runtime_minutes');
-  let yAttribute: NumericAttribute = $state('average_rating');
-  let sizeAttribute: NumericAttribute = $state('num_votes');
-  let visibleMovies = $derived.by(() => {
+  let xAttribute: ChannelAttribute = $state('year');
+  let yAttribute: ChannelAttribute = $state('simple_title');
+  let sizeAttribute: ChannelAttribute = $state('year');  let visibleMovies = $derived.by(() => {
     const yearRange = brushedYears;
     if (!yearRange) return movies;
     return movies.filter(movie => {
@@ -82,21 +86,21 @@
       <div class="controls">
         <label>X-axis
           <select bind:value={xAttribute}>
-            {#each numericAttributes as attribute}
+            {#each channelAttributes as attribute}
               <option value={attribute.value}>{attribute.label}</option>
             {/each}
           </select>
         </label>
         <label>Y-axis
           <select bind:value={yAttribute}>
-            {#each numericAttributes as attribute}
+            {#each channelAttributes as attribute}
               <option value={attribute.value}>{attribute.label}</option>
             {/each}
           </select>
         </label>
         <label>Point size
           <select bind:value={sizeAttribute}>
-            {#each numericAttributes as attribute}
+            {#each channelAttributes as attribute}
               <option value={attribute.value}>{attribute.label}</option>
             {/each}
           </select>
