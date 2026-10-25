@@ -9,30 +9,31 @@
     height?: number;
   };
 
-  let { movies, onBrushChange, width = 700, height = 320 }: Props = $props();
+  let { movies, onBrushChange, width = 700, height = 180 }: Props = $props();
   let brushLayer: SVGGElement;
 
-  const margin = { top: 24, right: 24, bottom: 42, left: 52 };
+  const margin = { top: 12, right: 24, bottom: 34, left: 52 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
-  const yearlyRatings = $derived.by(() => {
+  const yearlyCounts = $derived.by(() => {
     const grouped = d3.rollups(
       movies,
-      values => d3.mean(values, movie => movie.average_rating) ?? 0,
+      values => values.length,
       movie => movie.year.getFullYear()
     );
-    return grouped.map(([year, rating]) => ({ year, rating })).sort((a, b) => a.year - b.year);
+    return grouped.map(([year, count]) => ({ year, count })).sort((a, b) => a.year - b.year);
   });
-  const yearExtent = $derived(d3.extent(yearlyRatings, d => d.year));
+  const yearExtent = $derived(d3.extent(yearlyCounts, d => d.year));
+  const maxCount = $derived(d3.max(yearlyCounts, d => d.count) ?? 1);
   const xScale = $derived(
     d3.scaleLinear().domain(yearExtent[0] === undefined || yearExtent[1] === undefined ? [0, 1] : yearExtent as [number, number]).range([0, chartWidth])
   );
-  const yScale = $derived(d3.scaleLinear().domain([0, 10]).range([chartHeight, 0]));
+  const yScale = $derived(d3.scaleLinear().domain([0, maxCount]).nice().range([chartHeight, 0]));
   const linePath = $derived(
-    d3.line<{ year: number; rating: number }>().x(d => xScale(d.year)).y(d => yScale(d.rating))(yearlyRatings) ?? ''
+    d3.line<{ year: number; count: number }>().x(d => xScale(d.year)).y(d => yScale(d.count))(yearlyCounts) ?? ''
   );
   const xTicks = $derived(xScale.ticks(8));
-  const yTicks = $derived(yScale.ticks(5));
+  const yTicks = $derived(yScale.ticks(4));
 
   $effect(() => {
     if (!brushLayer) return;
@@ -54,25 +55,24 @@
   });
 </script>
 
-<svg {width} {height} role="img" aria-label="Average movie rating by year with a brush selection">
+<svg {width} {height} role="img" aria-label="Number of movies by year with a brush selection">
   <g transform={`translate(${margin.left},${margin.top})`}>
     {#each yTicks as tick}
       <line x1="0" x2={chartWidth} y1={yScale(tick)} y2={yScale(tick)} stroke="#e5e7eb" />
-      <text x={-10} y={yScale(tick) + 4} text-anchor="end" font-size="11">{tick}</text>
+      <text x={-10} y={yScale(tick) + 4} text-anchor="end" font-size="10">{tick}</text>
     {/each}
     {#each xTicks as tick}
-      <text x={xScale(tick)} y={chartHeight + 24} text-anchor="middle" font-size="11">{tick}</text>
+      <text x={xScale(tick)} y={chartHeight + 18} text-anchor="middle" font-size="10">{tick}</text>
     {/each}
-    <path d={linePath} fill="none" stroke="#4e79a7" stroke-width="2.5" />
-    {#each yearlyRatings as point (point.year)}
-      <circle cx={xScale(point.year)} cy={yScale(point.rating)} r="3" fill="#4e79a7">
-        <title>{point.year}: {point.rating.toFixed(2)}</title>
+    <path d={linePath} fill="none" stroke="#222" stroke-width="1.5" />
+    {#each yearlyCounts as point (point.year)}
+      <circle cx={xScale(point.year)} cy={yScale(point.count)} r="1.8" fill="#222">
+        <title>{point.year}: {point.count} movies</title>
       </circle>
     {/each}
     <line x1="0" x2={chartWidth} y1={chartHeight} y2={chartHeight} stroke="#374151" />
     <line x1="0" x2="0" y1="0" y2={chartHeight} stroke="#374151" />
     <g bind:this={brushLayer} aria-label="Year brush selection"></g>
-    <text x={chartWidth / 2} y={chartHeight + 40} text-anchor="middle" font-size="12">Year</text>
-    <text transform={`translate(${-40},${chartHeight / 2}) rotate(-90)`} text-anchor="middle" font-size="12">Average rating</text>
+    <text x={chartWidth / 2} y={chartHeight + 32} text-anchor="middle" font-size="11">Number of Movies by Year</text>
   </g>
 </svg>

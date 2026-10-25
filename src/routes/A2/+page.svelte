@@ -71,22 +71,12 @@
 
 <main>
   <h1>Summer Movies: Analysis</h1>
-  <p class="intro">Brush the timeline to filter movies, then compare numeric attributes in the scatterplot.</p>
+  <p class="intro">Here are {movies.length} movies. Brush the timeline to filter the scatterplot.</p>
   {#if loadError}
     <p class="error">Unable to load movie data: {loadError}</p>
   {:else if movies.length === 0}
     <p>Loading movie data...</p>
   {:else}
-    <section>
-      <h2>Average rating over time</h2>
-      <Line {movies} onBrushChange={updateBrush} />
-      {#if brushedYears}
-        <p class="filter-status">Showing movies from {brushedYears[0]} to {brushedYears[1]}.</p>
-      {:else}
-        <p class="filter-status">Showing all years. Drag across the line chart to filter.</p>
-      {/if}
-    </section>
-
     <section>
       <h2>Explore movie attributes</h2>
       <div class="controls">
@@ -113,19 +103,33 @@
         </label>
       </div>
       <p class="filter-status">{visibleMovies.length} of {movies.length} movies shown.</p>
-      <Scatter
-        movies={visibleMovies}
-        {selectedMovieId}
-        {xAttribute}
-        {yAttribute}
-        {sizeAttribute}
-        onSelect={selectMovie}
-      />
-      {#if selectedMovie}
-        <aside class="selection">
-          <strong>{selectedMovie.primary_title}</strong>
-          <span>{selectedMovie.year.getFullYear()} · Rating {selectedMovie.average_rating.toFixed(1)} · {selectedMovie.runtime_minutes} minutes · {selectedMovie.num_votes.toLocaleString()} votes</span>
-        </aside>
+      <div class="chart-with-details">
+        <Scatter
+          movies={visibleMovies}
+          {selectedMovieId}
+          {xAttribute}
+          {yAttribute}
+          {sizeAttribute}
+          onSelect={selectMovie}
+        />
+        {#if selectedMovie}
+          <aside class="selection">
+            <strong>{selectedMovie.primary_title}</strong>
+            <span>{selectedMovie.year.getFullYear()} · Rating {selectedMovie.average_rating.toFixed(1)} · {selectedMovie.runtime_minutes} minutes · {selectedMovie.num_votes.toLocaleString()} votes</span>
+          </aside>
+        {:else}
+          <aside class="selection empty">Click on a point to see details</aside>
+        {/if}
+      </div>
+    </section>
+
+    <section class="timeline">
+      <h2>Movie count over time</h2>
+      <Line {movies} onBrushChange={updateBrush} />
+      {#if brushedYears}
+        <p class="filter-status">Showing movies from {brushedYears[0]} to {brushedYears[1]}.</p>
+      {:else}
+        <p class="filter-status">Showing all years. Drag across the timeline to filter.</p>
       {/if}
     </section>
   {/if}
@@ -142,5 +146,7 @@
   select { min-width: 9rem; padding: 0.35rem; font: inherit; font-weight: 400; }
   .filter-status { color: #4b5563; font-size: 0.9rem; }
   .error { color: #b91c1c; }
-  .selection { display: flex; flex-direction: column; gap: 0.35rem; max-width: 700px; padding: 0.75rem 1rem; border-left: 4px solid #4e79a7; background: #eff6ff; color: #1f2937; }
+  .chart-with-details { display: flex; align-items: flex-start; gap: 1rem; }
+  .timeline { margin-top: 0.5rem; }
+  .selection { display: flex; flex-direction: column; gap: 0.35rem; width: 220px; padding: 0.75rem 1rem; border-left: 4px solid #4e79a7; background: #eff6ff; color: #1f2937; }
 </style>
