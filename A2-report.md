@@ -51,7 +51,7 @@ The dashboard was used to compare these factors with `average_rating`.
 For this view, I set the x-axis to `runtime_minutes`, the y-axis to `average_rating`, and point size to
 num_votes`. Point size provides additional context about popularity while the x- and y-positions show the runtime-rating relationship.
 
-![Runtime versus rating](static/images/runtime_vs_rating.png)
+![Runtime versus rating](static/images/Runtime_vs_rating.png)
 
 
 The relationship between runtime and rating is very weak. The Pearson correlation is approximately `-0.008`, which is effectively zero for this exploratory analysis. The points do not form a strong upward or downward pattern. This suggests that longer movies are not consistently rated higher or lower than shorter movies in this dataset.
