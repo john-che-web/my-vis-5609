@@ -41,7 +41,7 @@
   const chartHeight = height - margin.top - margin.bottom;
 
   function channelValue(movie: TMovie, attribute: ChannelAttribute): number | string | null {
-    if (attribute === 'year') return movie.year ? movie.year.getFullYear() : null;
+    if (attribute === 'year') return movie.year && !Number.isNaN(movie.year.getTime()) ? movie.year.getFullYear() : null;
     if (attribute === 'runtime_minutes') return movie.runtime_minutes;
     if (attribute === 'average_rating') return movie.average_rating;
     if (attribute === 'num_votes') return movie.num_votes;

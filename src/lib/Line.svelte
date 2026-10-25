@@ -17,7 +17,7 @@
   const chartHeight = height - margin.top - margin.bottom;
   const yearlyCounts = $derived.by(() => {
     const grouped = d3.rollups(
-      movies,
+      movies.filter(movie => movie.year !== null && !Number.isNaN(movie.year.getTime())),
       values => values.length,
       movie => movie.year!.getFullYear()
     );

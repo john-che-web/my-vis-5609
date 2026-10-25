@@ -41,15 +41,16 @@
     try {
       const data = await d3.csv(`${base}/summer_movies.csv`, row => ({
         ...row,
-        year: new Date(Number(row.year), 0, 1),
-        runtime_minutes: Number(row.runtime_minutes),
-        average_rating: Number(row.average_rating),
-        num_votes: Number(row.num_votes),
+        year: row.year && row.year !== 'NA' ? new Date(Number(row.year), 0, 1) : null,
+        runtime_minutes: row.runtime_minutes && row.runtime_minutes !== 'NA' ? Number(row.runtime_minutes) : null,
+        average_rating: row.average_rating && row.average_rating !== 'NA' ? Number(row.average_rating) : null,
+        num_votes: row.num_votes && row.num_votes !== 'NA' ? Number(row.num_votes) : null,
         genres: (row.genres ?? '').split(',').map(genre => genre.trim()).filter(Boolean)
       }));
 
       totalMovies = data.length;
-      movies = data as unknown as TMovie[];    } catch (error) {
+      movies = data as unknown as TMovie[];
+    } catch (error) {
       loadError = error instanceof Error ? error.message : 'Unable to load movie data.';
     }
   });
