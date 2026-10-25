@@ -19,6 +19,7 @@
   ];
 
   let movies: TMovie[] = $state([]);
+  let totalMovies = $state(0);
   let loadError: string | undefined = $state(undefined);
   let selectedMovieId: string | undefined = $state(undefined);
   let selectedMovie = $derived(movies.find(movie => movie.tconst === selectedMovieId));
@@ -45,6 +46,7 @@
         genres: (row.genres ?? '').split(',').map(genre => genre.trim()).filter(Boolean)
       }));
 
+      totalMovies = data.length;
       movies = (data as unknown as TMovie[]).filter(movie =>
         !Number.isNaN(movie.year.getTime()) &&
         Number.isFinite(movie.runtime_minutes) &&
@@ -75,7 +77,7 @@
 
 <main>
   <h1>Summer Movies: Analysis</h1>
-  <p class="intro">Here are {movies.length} movies. Brush the timeline to filter the scatterplot.</p>
+  <p class="intro">Here are {totalMovies} movies. Brush the timeline to filter the scatterplot.</p>
   {#if loadError}
     <p class="error">Unable to load movie data: {loadError}</p>
   {:else if movies.length === 0}
@@ -106,7 +108,7 @@
           </select>
         </label>
       </div>
-      <p class="filter-status">{visibleMovies.length} of {movies.length} movies shown.</p>
+      <p class="filter-status">{visibleMovies.length} of {totalMovies} movies shown.</p>
       <div class="chart-with-details">
         <Scatter
           movies={visibleMovies}
