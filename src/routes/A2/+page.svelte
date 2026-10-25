@@ -160,7 +160,8 @@
   select { min-width: 9rem; padding: 0.35rem; font: inherit; font-weight: 400; }
   .filter-status { color: #4b5563; font-size: 0.9rem; }
   .error { color: #b91c1c; }
-  .chart-with-details { display: flex; align-items: flex-start; gap: 1rem; }
+  .chart-with-details { display: flex; width: max-content; align-items: flex-start; gap: 1rem; }
+  .chart-with-details :global(svg) { flex: 0 0 auto; }
   .timeline { margin-top: 0.5rem; }
   .selection { display: flex; flex-direction: column; gap: 0.35rem; width: 220px; padding: 0.75rem 1rem; border-left: 4px solid #4e79a7; background: #eff6ff; color: #1f2937; }
   details { margin-top: 0.5rem; }
