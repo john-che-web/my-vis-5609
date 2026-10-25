@@ -53,7 +53,7 @@
     const result: Record<string, number> = {};
 
     movies
-      .filter((movie) => movie.year <= upYear)
+      .filter((movie) => movie.year !== null && movie.year <= upYear)
       .forEach((movie) => {
         movie.genres.forEach((genre: string) => {
           result[genre] = (result[genre] || 0) + 1;
@@ -173,6 +173,7 @@
     const byYear = new Map<number, Record<string, number>>();
 
     movies.forEach((movie) => {
+      if (!movie.year) return;
       const y = movie.year.getFullYear();
       const counts = byYear.get(y) ?? {};
       movie.genres.forEach((genre: string) => {
@@ -364,7 +365,7 @@
     movies
       .filter(
         (movie) =>
-          movie.year <= upYear && movie.genres.includes(base)
+          movie.year !== null && movie.year <= upYear && movie.genres.includes(base)
       )
       .forEach((movie) => {
         movie.genres.forEach((genre: string) => {

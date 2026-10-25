@@ -1,9 +1,9 @@
 export type TMovie = {
-    num_votes: number;
-    runtime_minutes:  number;
+    num_votes: number | null;
+    runtime_minutes: number | null;
     genres: string[];
-    year: Date;
-    average_rating: number;
+    year: Date | null;
+    average_rating: number | null;
     tconst: string;
     title_type: string;
     primary_title: string;

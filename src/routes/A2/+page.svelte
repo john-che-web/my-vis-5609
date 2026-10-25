@@ -26,10 +26,12 @@
   let brushedYears: [number, number] | undefined = $state(undefined);
   let xAttribute: ChannelAttribute = $state('year');
   let yAttribute: ChannelAttribute = $state('simple_title');
-  let sizeAttribute: ChannelAttribute = $state('year');  let visibleMovies = $derived.by(() => {
+  let sizeAttribute: ChannelAttribute = $state('year');
+  let visibleMovies = $derived.by(() => {
     const yearRange = brushedYears;
     if (!yearRange) return movies;
     return movies.filter(movie => {
+      if (!movie.year) return false;
       const year = movie.year.getFullYear();
       return year >= yearRange[0] && year <= yearRange[1];
     });
@@ -47,13 +49,7 @@
       }));
 
       totalMovies = data.length;
-      movies = (data as unknown as TMovie[]).filter(movie =>
-        !Number.isNaN(movie.year.getTime()) &&
-        Number.isFinite(movie.runtime_minutes) &&
-        Number.isFinite(movie.average_rating) &&
-        Number.isFinite(movie.num_votes)
-      );
-    } catch (error) {
+      movies = data as unknown as TMovie[];    } catch (error) {
       loadError = error instanceof Error ? error.message : 'Unable to load movie data.';
     }
   });
@@ -65,6 +61,7 @@
   function updateBrush(years: [number, number] | undefined) {
     brushedYears = years;
     if (years && selectedMovie) {
+      if (!selectedMovie.year) { selectedMovieId = undefined; return; }
       const selectedYear = selectedMovie.year.getFullYear();
       if (selectedYear < years[0] || selectedYear > years[1]) selectedMovieId = undefined;
     }
@@ -121,7 +118,7 @@
         {#if selectedMovie}
           <aside class="selection">
             <strong>{selectedMovie.primary_title}</strong>
-            <span>{selectedMovie.year.getFullYear()} · Rating {selectedMovie.average_rating.toFixed(1)} · {selectedMovie.runtime_minutes} minutes · {selectedMovie.num_votes.toLocaleString()} votes</span>
+            <span>{selectedMovie.year ? selectedMovie.year.getFullYear() : 'Unknown year'} · Rating {selectedMovie.average_rating ?? 'Unknown'} · {selectedMovie.runtime_minutes ?? 'Unknown'} minutes · {selectedMovie.num_votes?.toLocaleString() ?? 'Unknown'} votes</span>
           </aside>
         {:else}
           <aside class="selection empty">Click on a point to see details</aside>

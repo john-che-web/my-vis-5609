@@ -19,7 +19,7 @@
     const grouped = d3.rollups(
       movies,
       values => values.length,
-      movie => movie.year.getFullYear()
+      movie => movie.year!.getFullYear()
     );
     return grouped.map(([year, count]) => ({ year, count })).sort((a, b) => a.year - b.year);
   });
