@@ -119,6 +119,10 @@
           <aside class="selection">
             <strong>{selectedMovie.primary_title}</strong>
             <span>{selectedMovie.year ? selectedMovie.year.getFullYear() : 'Unknown year'} · Rating {selectedMovie.average_rating ?? 'Unknown'} · {selectedMovie.runtime_minutes ?? 'Unknown'} minutes · {selectedMovie.num_votes?.toLocaleString() ?? 'Unknown'} votes</span>
+            <details>
+              <summary>Raw movie data</summary>
+              <pre>{JSON.stringify(selectedMovie, null, 2)}</pre>
+            </details>
           </aside>
         {:else}
           <aside class="selection empty">Click on a point to see details</aside>
@@ -152,4 +156,7 @@
   .chart-with-details { display: flex; align-items: flex-start; gap: 1rem; }
   .timeline { margin-top: 0.5rem; }
   .selection { display: flex; flex-direction: column; gap: 0.35rem; width: 220px; padding: 0.75rem 1rem; border-left: 4px solid #4e79a7; background: #eff6ff; color: #1f2937; }
+  details { margin-top: 0.5rem; }
+  summary { cursor: pointer; }
+  pre { max-width: 360px; max-height: 260px; overflow: auto; margin: 0.5rem 0 0; padding: 0.5rem; background: #f8fafc; font-size: 0.72rem; white-space: pre-wrap; }
 </style>
