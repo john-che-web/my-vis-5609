@@ -14,6 +14,7 @@
   ];
 
   let movies: TMovie[] = $state([]);
+  let loadError: string | undefined = $state(undefined);
   let selectedMovieId: string | undefined = $state(undefined);
   let selectedMovie = $derived(movies.find(movie => movie.tconst === selectedMovieId));
   let brushedYears: [number, number] | undefined = $state(undefined);
@@ -30,15 +31,25 @@
   });
 
   onMount(async () => {
-    const data = await d3.csv(`${base}/summer_movies.csv`, row => ({
-      ...row,
-      year: new Date(Number(row.year), 0, 1),
-      runtime_minutes: Number(row.runtime_minutes),
-      average_rating: Number(row.average_rating),
-      num_votes: Number(row.num_votes),
-      genres: (row.genres ?? '').split(',').map(genre => genre.trim()).filter(Boolean)
-    }));
-    movies = data as unknown as TMovie[];
+    try {
+      const data = await d3.csv(`${base}/summer_movies.csv`, row => ({
+        ...row,
+        year: new Date(Number(row.year), 0, 1),
+        runtime_minutes: Number(row.runtime_minutes),
+        average_rating: Number(row.average_rating),
+        num_votes: Number(row.num_votes),
+        genres: (row.genres ?? '').split(',').map(genre => genre.trim()).filter(Boolean)
+      }));
+
+      movies = (data as unknown as TMovie[]).filter(movie =>
+        !Number.isNaN(movie.year.getTime()) &&
+        Number.isFinite(movie.runtime_minutes) &&
+        Number.isFinite(movie.average_rating) &&
+        Number.isFinite(movie.num_votes)
+      );
+    } catch (error) {
+      loadError = error instanceof Error ? error.message : 'Unable to load movie data.';
+    }
   });
 
   function selectMovie(movie: TMovie) {
@@ -61,7 +72,9 @@
 <main>
   <h1>Summer Movies: Analysis</h1>
   <p class="intro">Brush the timeline to filter movies, then compare numeric attributes in the scatterplot.</p>
-  {#if movies.length === 0}
+  {#if loadError}
+    <p class="error">Unable to load movie data: {loadError}</p>
+  {:else if movies.length === 0}
     <p>Loading movie data...</p>
   {:else}
     <section>
@@ -128,5 +141,6 @@
   label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.9rem; font-weight: 600; }
   select { min-width: 9rem; padding: 0.35rem; font: inherit; font-weight: 400; }
   .filter-status { color: #4b5563; font-size: 0.9rem; }
+  .error { color: #b91c1c; }
   .selection { display: flex; flex-direction: column; gap: 0.35rem; max-width: 700px; padding: 0.75rem 1rem; border-left: 4px solid #4e79a7; background: #eff6ff; color: #1f2937; }
 </style>
