@@ -21,3 +21,9 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Assignment specs
+A3 Specs.md
+
+# A3 starter materials
+A3-3D/
