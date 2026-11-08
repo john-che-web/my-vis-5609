@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import { base } from "$app/paths";
     import * as THREE from "three";
     import { FontLoader, Font } from "three/addons/loaders/FontLoader.js";
     import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
@@ -8,6 +9,8 @@
     import { addGround, onWindowResize, loadModels } from "$lib/Helper-3D";
 
     import * as d3 from "d3";
+
+    const assetPath = (path: string) => `${base}/${path}`;
 
     let movies: TMovie[] = $state([]);
 
@@ -35,7 +38,7 @@
     //   - Count how many movies belong to each genre (Comedy, Romance, Drama)
     //   - Build a TStackRow[] array sorted by year
     async function loadCsv() {
-        const rows = await d3.csv("/summer_movies.csv");
+        const rows = await d3.csv(`${base}/summer_movies.csv`);
         const parsedMovies: TMovie[] = rows
             .map((row) => ({
                 tconst: row.tconst ?? "",
@@ -123,7 +126,7 @@
 
         // Scene
         scene = new THREE.Scene();
-        new THREE.TextureLoader().load("3d/sky.jpg", (texture) => {
+        new THREE.TextureLoader().load(assetPath("3d/sky.jpg"), (texture) => {
             texture.repeat.set(0.8, 1);
             scene.background = texture;
         });
@@ -150,11 +153,11 @@
         scene.add(light);
 
         // Ground
-        addGround(scene, FLOOR, "3d/grasslight-big.jpg");
+        addGround(scene, FLOOR, assetPath("3d/grasslight-big.jpg"));
 
         // Title + Stacked Bars
         const fontLoader = new FontLoader();
-        fontLoader.load("3d/helvetiker_bold.typeface.json", (font: Font) => {
+        fontLoader.load(assetPath("3d/helvetiker_bold.typeface.json"), (font: Font) => {
             // Title
             const textGeo = new TextGeometry("summer movies", {
                 font: font,
@@ -202,7 +205,7 @@
         // Load bird models (linear motion)
         const birdModels = [
             {
-                path: "3d/Flamingo.glb", // TODO: replace with your model
+                path: assetPath("3d/Flamingo.glb"), // TODO: replace with your model
                 speed: 350,
                 duration: 1,
                 x: 300 - Math.random() * 500,
@@ -211,7 +214,7 @@
                 scale: 0.5,
             },
             {
-                path: "3d/Flamingo.glb", // TODO: replace with your model
+                path: assetPath("3d/Flamingo.glb"), // TODO: replace with your model
                 speed: 350,
                 duration: 1,
                 x: 300 - Math.random() * 500,
@@ -220,7 +223,7 @@
                 scale: 0.5,
             },
             {
-                path: "3d/Parrot.glb", // TODO: replace with your model
+                path: assetPath("3d/Parrot.glb"), // TODO: replace with your model
                 speed: 500,
                 duration: 0.75,
                 x: 250 - Math.random() * 500,
@@ -239,7 +242,7 @@
             { startAngle: Math.PI, orbitSpeed: 0.4 },
         ];
         horseConfigs.forEach((config) => {
-            gltfLoader.load("3d/Horse.glb", (gltf) => { // TODO: replace with your model
+            gltfLoader.load(assetPath("3d/Horse.glb"), (gltf) => { // TODO: replace with your model
                 const mesh = gltf.scene.children[0].clone() as THREE.Mesh;
                 (mesh as any).material = (mesh as any).material.clone();
                 mesh.scale.set(0.5, 0.5, 0.5);
