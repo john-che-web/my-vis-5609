@@ -90,13 +90,13 @@
     const clock = new THREE.Clock();
 
     const horseMorphs: Array<THREE.Mesh> = [];
-    const expressiveObjects: Array<THREE.Object3D> = [];
+
     let horseMixer: THREE.AnimationMixer;
     const ORBIT_RX = 850;
     const ORBIT_RZ = 400;
 
 
-    let animating = $state(false);
+    let animating = $state(true);
 
     onMount(async () => {
         await loadCsv();
@@ -221,12 +221,12 @@
             },
             {
                 path: "3d/Parrot.glb", // TODO: replace with your model
-                speed: 350,
-                duration: 0.5,
-                x: 500 - Math.random() * 500,
-                y: FLOOR + 500,
-                z: 700,
-                scale: 0.5,
+                speed: 500,
+                duration: 0.75,
+                x: 250 - Math.random() * 500,
+                y: FLOOR + 600,
+                z: 300,
+                scale: 0.7,
             },
         ];
         mixer = loadModels(birdModels, scene, mixer, morphs);
@@ -263,35 +263,6 @@
                 horseMorphs.push(mesh);
             });
         });
-        const reel = new THREE.Group();
-        const reelMaterial = new THREE.MeshStandardMaterial({
-            color: 0xd4a017,
-            metalness: 0.65,
-            roughness: 0.3,
-        });
-        reel.add(new THREE.Mesh(new THREE.TorusGeometry(55, 10, 12, 32), reelMaterial));
-        reel.add(
-            new THREE.Mesh(
-                new THREE.CylinderGeometry(12, 12, 8, 24),
-                reelMaterial,
-            ),
-        );
-
-        for (let index = 0; index < 5; index += 1) {
-            const spoke = new THREE.Mesh(
-                new THREE.BoxGeometry(12, 80, 8),
-                reelMaterial,
-            );
-            spoke.rotation.z = (index * Math.PI) / 5;
-            reel.add(spoke);
-        }
-
-        reel.position.set(-500, FLOOR + 270, 160);
-        reel.userData.baseY = reel.position.y;
-        reel.userData.phase = 0;
-        reel.castShadow = true;
-        scene.add(reel);
-        expressiveObjects.push(reel);
         // === END TODO-2 ===
 
         // Handle resize
@@ -334,14 +305,14 @@
         if (stackData.length === 0) return;
 
         const chartWidth = Math.min(stackData.length * 80, 1400);
-        const unitHeight = 14;
+        const unitHeight = 16;
         const xScale = d3
             .scaleBand()
             .domain(stackData.map((row) => row.year))
             .range([-chartWidth / 2, chartWidth / 2])
             .padding(0.1);
         const bandwidth = xScale.bandwidth();
-        const unitScale = Math.min(1, bandwidth / 16);
+        const unitScale = Math.min(1.1, bandwidth / 14);
 
         stackData.forEach((row, rowIndex) => {
             const xPosition = xScale(row.year)! + bandwidth / 2;
@@ -372,30 +343,35 @@
 
             const yearGeometry = new TextGeometry(row.year, {
                 font,
-                size: 6,
-                depth: 2,
+                size: 12,
+                depth: 3,
             });
             yearGeometry.computeBoundingBox();
             const yearWidth =
                 yearGeometry.boundingBox!.max.x - yearGeometry.boundingBox!.min.x;
+            const yearX = xPosition - yearWidth / 2;
+            const yearY = currentY + 10;
+            const yearShadow = new THREE.Mesh(
+                yearGeometry,
+                new THREE.MeshBasicMaterial({ color: 0x123018 }),
+            );
+            yearShadow.scale.setScalar(1.12);
+            yearShadow.position.set(yearX - 1, yearY - 1, 68);
+            scene.add(yearShadow);
+
             const yearLabel = new THREE.Mesh(
                 yearGeometry,
-                new THREE.MeshPhysicalMaterial({ color: 0xffffff }),
+                new THREE.MeshBasicMaterial({ color: 0xffffff }),
             );
-            yearLabel.position.set(
-                xPosition - yearWidth / 2,
-                FLOOR + 5,
-                12,
-            );
-            yearLabel.castShadow = true;
+            yearLabel.position.set(yearX, yearY, 72);
             scene.add(yearLabel);
         });
     }
 
     function createLegend(scene: THREE.Scene, font: Font) {
-        const legendX = 180;
-        const legendStartY = FLOOR + 420;
-        const spacing = 40;
+        const legendX = 820;
+        const legendStartY = FLOOR + 650;
+        const spacing = 50;
 
         genres.forEach((genre, index) => {
             const yPosition = legendStartY - index * spacing;
@@ -403,7 +379,7 @@
                 createGenreGeometry(genre),
                 createGenreMaterial(genre),
             );
-            swatch.scale.setScalar(1.2);
+            swatch.scale.setScalar(1.4);
             swatch.position.set(legendX, yPosition, 0);
             swatch.castShadow = true;
             scene.add(swatch);
@@ -411,12 +387,12 @@
             const label = new THREE.Mesh(
                 new TextGeometry(genre, {
                     font,
-                    size: 10,
+                    size: 13,
                     depth: 3,
                 }),
                 new THREE.MeshPhysicalMaterial({ color: 0x000000 }),
             );
-            label.position.set(legendX + 18, yPosition - 5, 0);
+            label.position.set(legendX + 26, yPosition - 6, 0);
             label.castShadow = true;
             scene.add(label);
         });
@@ -426,12 +402,6 @@
         const delta = clock.getDelta();
 
         if (animating) {
-            expressiveObjects.forEach((object) => {
-                object.rotation.z += delta * 1.2;
-                object.position.y =
-                    object.userData.baseY +
-                    Math.sin(clock.elapsedTime * 2 + object.userData.phase) * 12;
-            });
             mixer.update(delta);
             horseMixer.update(delta);
 
@@ -468,9 +438,6 @@
 
 <div bind:this={container} class="container"></div>
 
-<button class="toggle-btn" onclick={() => animating = !animating}>
-    {animating ? "Pause" : "Play"} Animation
-</button>
 
 <style>
     div.container {
@@ -478,21 +445,4 @@
         height: 100%;
     }
 
-    .toggle-btn {
-        position: fixed;
-        bottom: 10px;
-        right: 10px;
-        padding: 8px 10px;
-        font-size: 12px;
-        border: none;
-        border-radius: 20px;
-        background: rgba(0, 0, 0, 0.30);
-        color: white;
-        cursor: pointer;
-        z-index: 10;
-    }
-
-    .toggle-btn:hover {
-        background: rgba(0, 0, 0, 0.8);
-    }
 </style>
